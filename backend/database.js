@@ -18,7 +18,7 @@ client.connect((err) => {
   const usuariosCollection = db.collection('usuarios');
   console.log('Colección "usuarios" creada');
 
-  // Función para crear un nuevo evento
+  // Operaciones CRUD para eventos
   const crearEvento = async (nombreEvento, fechaEvento, descripcion) => {
     const evento = {
       nombre: nombreEvento,
@@ -33,10 +33,44 @@ client.connect((err) => {
       console.error('Error al crear el evento:', err);
     }
   };
+
+  const leerEventos = async () => {
+    try {
+      const eventos = await eventosCollection.find().toArray();
+      return eventos;
+    } catch (err) {
+      console.error('Error al leer los eventos:', err);
+      return [];
+    }
+  };
+
+  const actualizarEvento = async (id, nombreEvento, fechaEvento, descripcion) => {
+    try {
+      await eventosCollection.updateOne(
+        { _id: MongoClient.ObjectId(id) },
+        { $set: { nombre: nombreEvento, fecha: fechaEvento, descripcion: descripcion } }
+      );
+      console.log('Evento actualizado exitosamente');
+    } catch (err) {
+      console.error('Error al actualizar el evento:', err);
+    }
+  };
+
+  const eliminarEvento = async (id) => {
+    try {
+      await eventosCollection.deleteOne({ _id: MongoClient.ObjectId(id) });
+      console.log('Evento eliminado exitosamente');
+    } catch (err) {
+      console.error('Error al eliminar el evento:', err);
+    }
+  };
 });
 
 module.exports = {
   eventosCollection,
   usuariosCollection,
   crearEvento,
+  leerEventos,
+  actualizarEvento,
+  eliminarEvento,
 };

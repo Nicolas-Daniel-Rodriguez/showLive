@@ -2,9 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const MongoClient = require('mongodb').MongoClient;
 const uri = 'mongodb://localhost:27017'; // Cambia la URI según tu configuración
-
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
 const secretKey = 'tu_clave_secreta'; // Cambia esta clave por una clave secreta más segura
 
 client.connect(async (err) => {
@@ -43,6 +41,44 @@ client.connect(async (err) => {
     }
   };
 
+  // Función para leer los usuarios
+  const leerUsuarios = async () => {
+    try {
+      const usuarios = await usuariosCollection.find().toArray();
+      return usuarios;
+    } catch (err) {
+      console.error('Error al leer los usuarios:', err);
+      return [];
+    }
+  };
+
+  // Función para actualizar un usuario
+  const actualizarUsuario = async (email, nuevoEmail, nuevaPassword) => {
+    try {
+      // Hashear la nueva contraseña
+      const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+
+      // Actualizar el usuario
+      await usuariosCollection.updateOne(
+        { email },
+        { $set: { email: nuevoEmail, password: hashedPassword } }
+      );
+      console.log('Usuario actualizado exitosamente');
+    } catch (err) {
+      console.error('Error al actualizar el usuario:', err);
+    }
+  };
+
+  // Función para eliminar un usuario
+  const eliminarUsuario = async (email) => {
+    try {
+      await usuariosCollection.deleteOne({ email });
+      console.log('Usuario eliminado exitosamente');
+    } catch (err) {
+      console.error('Error al eliminar el usuario:', err);
+    }
+  };
+
   // Función para autenticar a un usuario y generar un token JWT
   const autenticarUsuario = async (email, password) => {
     // Buscar al usuario en la base de datos por su correo electrónico
@@ -77,6 +113,9 @@ client.connect(async (err) => {
 
   module.exports = {
     registrarUsuario,
+    leerUsuarios,
+    actualizarUsuario,
+    eliminarUsuario,
     autenticarUsuario,
     verificarToken,
   };
