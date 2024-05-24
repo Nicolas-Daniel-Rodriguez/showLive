@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+const { leerEventos } = require('./database');
 const { autenticarUsuario, verificarToken } = require('./auth');
 
 app.use(express.json()); // Middleware para analizar cuerpos de solicitud JSON
@@ -37,10 +38,21 @@ const authMiddleware = (req, res, next) => {
   next();
 };
 
-app.get('/eventos', authMiddleware, (req, res) => {
-  // Aquí puedes obtener los eventos de la base de datos y enviarlos como respuesta
-  // Solo los usuarios autenticados podrán acceder a esta ruta
+app.get('/api/eventos', async (req, res) => {
+  try {
+    const eventos = await leerEventos();
+    res.json(eventos);
+  } catch (err) {
+    console.error('Error al obtener los eventos:', err);
+    res.status(500).json({ error: 'Error al obtener los eventos' });
+  }
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor en ejecución en http://localhost:${PORT}`);
+});
+
 
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
